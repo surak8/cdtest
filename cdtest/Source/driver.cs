@@ -72,7 +72,7 @@ new CSharpCodeProvider(),
 			ns0.Imports.Add(new CodeNamespaceImport("System"));
 			ns0.Imports.Add(new CodeNamespaceImport("System.IO"));
 			ns0.Imports.Add(new CodeNamespaceImport("System.Diagnostics"));
-			ns.Types.Add(ctd = createType("c1", cdp,ns));
+			ns.Types.Add(ctd = createType("c1", cdp, ns));
 			ccu.ReferencedAssemblies.Add("System.dll");
 
 			fname = "tmp." + cdp.FileExtension;
@@ -85,9 +85,9 @@ new CSharpCodeProvider(),
 					"#include \"tmp.h\"");
 		}
 
-		static CodeTypeDeclaration createType(string className, CodeDomProvider cdp,CodeNamespace ns) {
+		static CodeTypeDeclaration createType(string className, CodeDomProvider cdp, CodeNamespace ns) {
 			CodeTypeDeclaration ret = new CodeTypeDeclaration(className);
-			CodeMemberMethod m2 = null,m;
+			CodeMemberMethod m2 = null, m;
 			CodeMemberField f;
 			CodeFieldReferenceExpression fr;
 			CodeMemberProperty p;
@@ -103,8 +103,8 @@ new CSharpCodeProvider(),
 
 			ret.Members.Add(f = createField(out fr));
 			ret.Members.Add(p = createProperty(fr, f.Type));
-			ret.Members.Add(m=createStatementMethod1(m2, cdp, cme, ctd2, ret));
-			addMain(cdp, ret,m,ns);
+			ret.Members.Add(m = createStatementMethod1(m2, cdp, cme, ctd2, ret));
+			addMain(cdp, ret, m, ns);
 			return ret;
 		}
 
