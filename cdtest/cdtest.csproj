@@ -54,9 +54,13 @@
   <ItemGroup Label="References">
     <Reference Include="System" />
     <Reference Include="System.Data" />
-     <Reference Include="CPPCodeProvider"/>
-    <Reference Include="Microsoft.JScript"/>
-    <Reference Include="Microsoft.VisualBasic"/>
- </ItemGroup>
+    <Reference Include="CPPCodeProvider" />
+    <Reference Include="Microsoft.JScript" />
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"c:\program files (x86)\msbuild\14.0\bin\csc.exe" -nologo tmp.cs
+echo "HI"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
