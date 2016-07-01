@@ -21,184 +21,180 @@ using System.IO;
 using System.Text;
 
 namespace NSCdtest {
-	public class driver {
-		const string DEFAULT_NAMESPACE = "NSTest";
-		const string ANAME = "aname";
+    public class driver {
+        const string DEFAULT_NAMESPACE = "NSTest";
+        const string ANAME = "aname";
 
-		static readonly CodeExpression ceZero = new CodePrimitiveExpression(0);
-		static readonly CodeExpression ceThis0 = new CodeThisReferenceExpression();
-		static readonly CodeExpression ceValue = new CodePropertySetValueReferenceExpression();
-		//		static readonly CodeExpression ceNull0 = new CodePrimitiveExpression();
-		static readonly CodeExpression ceNull = new CodePrimitiveExpression();
+        static readonly CodeExpression ceZero = new CodePrimitiveExpression(0);
+        static readonly CodeExpression ceThis0 = new CodeThisReferenceExpression();
+        static readonly CodeExpression ceValue = new CodePropertySetValueReferenceExpression();
+        //		static readonly CodeExpression ceNull0 = new CodePrimitiveExpression();
+        static readonly CodeExpression ceNull = new CodePrimitiveExpression();
 
-		[STAThread()]
-		public static void Main(string[] args) {
+        [STAThread()]
+        public static void Main(string[] args) {
 
-			TextWriterTraceListener twtl;
+            TextWriterTraceListener twtl;
 
-			Trace.Listeners.Add(twtl = new TextWriterTraceListener(Console.Out, ANAME));
-			Trace.WriteLine("Starts");
-			CodeGeneratorOptions opts = new CodeGeneratorOptions();
-			generate(
-			new CodeDomProvider[] {
-new VBCodeProvider(),
-new JScriptCodeProvider(),
-new CppCodeProvider(),
-new CSharpCodeProvider(),
-			}, opts);
-			//			generate(new CSharpCodeProvider(),opts);
-			Trace.WriteLine("Ends");
-			Trace.Flush();
-			Trace.Listeners.Remove(ANAME);
-		}
+            Trace.Listeners.Add(twtl = new TextWriterTraceListener(Console.Out, ANAME));
+            Trace.WriteLine("Starts");
+            CodeGeneratorOptions opts = new CodeGeneratorOptions();
+            generate(
+                new CodeDomProvider[] {
+                    new VBCodeProvider(),
+                    new JScriptCodeProvider(),
+                    new CppCodeProvider(),
+                    new CSharpCodeProvider(),
+                }, opts);
+            Trace.WriteLine("Ends");
+            Trace.Flush();
+            Trace.Listeners.Remove(ANAME);
+        }
 
-		static void generate(CodeDomProvider[] providers, CodeGeneratorOptions opts) {
-			foreach (CodeDomProvider cdp in providers)
-				generate(cdp, opts);
-		}
+        static void generate(CodeDomProvider[] providers, CodeGeneratorOptions opts) {
+            foreach (CodeDomProvider cdp in providers)
+                generate(cdp, opts);
+        }
 
-		static void generate(CodeDomProvider cdp, CodeGeneratorOptions opts) {
-			CodeCompileUnit ccu = new CodeCompileUnit();
-			CodeNamespace ns0, ns;
-			string fname;
-			StringBuilder sb;
-			CodeTypeDeclaration ctd;
+        static void generate(CodeDomProvider cdp, CodeGeneratorOptions opts) {
+            CodeCompileUnit ccu = new CodeCompileUnit();
+            CodeNamespace ns0, ns;
+            string fname;
+            StringBuilder sb;
+            CodeTypeDeclaration ctd;
 
-			ccu.Namespaces.AddRange(
-			new CodeNamespace[] {
-				ns0=new CodeNamespace(),
-				ns=new CodeNamespace(DEFAULT_NAMESPACE)
-			});
-			ns0.Imports.Add(new CodeNamespaceImport("System"));
-			ns0.Imports.Add(new CodeNamespaceImport("System.IO"));
-			ns0.Imports.Add(new CodeNamespaceImport("System.Diagnostics"));
-			ns.Types.Add(ctd = createType("c1", cdp, ns));
-			ccu.ReferencedAssemblies.Add("System.dll");
+            ccu.Namespaces.AddRange(
+            new CodeNamespace[] {
+                ns0=new CodeNamespace(),
+                ns=new CodeNamespace(DEFAULT_NAMESPACE)
+            });
+            ns0.Imports.Add(new CodeNamespaceImport("System"));
+            ns0.Imports.Add(new CodeNamespaceImport("System.IO"));
+            ns0.Imports.Add(new CodeNamespaceImport("System.Diagnostics"));
+            ns.Types.Add(ctd = createType("c1", cdp, ns));
+            ccu.ReferencedAssemblies.Add("System.dll");
 
-			fname = "tmp." + cdp.FileExtension;
-			using (TextWriter tw = new StringWriter(sb = new StringBuilder())) {
-				cdp.GenerateCodeFromCompileUnit(ccu, tw, opts);
-			}
-			File.WriteAllText(fname, sb.ToString());
-			if (string.Compare(cdp.FileExtension, "h", true) == 0)
-				File.WriteAllText("tmp.cpp",
-					"#include \"tmp.h\"");
-		}
+            fname = "tmp." + cdp.FileExtension;
+            using (TextWriter tw = new StringWriter(sb = new StringBuilder())) {
+                cdp.GenerateCodeFromCompileUnit(ccu, tw, opts);
+            }
+            File.WriteAllText(fname, sb.ToString());
+            if (string.Compare(cdp.FileExtension, "h", true) == 0)
+                File.WriteAllText("tmp.cpp",
+                    "#include \"tmp.h\"");
+        }
 
-		static CodeTypeDeclaration createType(string className, CodeDomProvider cdp, CodeNamespace ns) {
-			CodeTypeDeclaration ret = new CodeTypeDeclaration(className);
-			CodeMemberMethod m2 = null, m;
-			CodeMemberField f;
-			CodeFieldReferenceExpression fr;
-			CodeMemberProperty p;
-			CodeMemberEvent cme = null;
-			CodeTypeDelegate ctd2 = null;
+        static CodeTypeDeclaration createType(string className, CodeDomProvider cdp, CodeNamespace ns) {
+            CodeTypeDeclaration ret = new CodeTypeDeclaration(className);
+            CodeMemberMethod m2 = null, m;
+            CodeMemberField f;
+            CodeFieldReferenceExpression fr;
+            CodeMemberProperty p;
+            CodeMemberEvent cme = null;
+            CodeTypeDelegate ctd2 = null;
 
-			if (cdp.Supports(GeneratorSupport.DeclareEvents)) {
-				const string HANLDER_NAME = "BlahEventHandler";
-				ctd2 = createDelegateType(ret, HANLDER_NAME);
-				cme = createEvent(ret, ctd2, "myEvent");
-				ret.Members.Add(m2 = createSimpleMethod());
-			}
+            if (cdp.Supports(GeneratorSupport.DeclareEvents)) {
+                const string HANLDER_NAME = "BlahEventHandler";
+                ctd2 = createDelegateType(ret, HANLDER_NAME);
+                cme = createEvent(ret, ctd2, "myEvent");
+                ret.Members.Add(m2 = createSimpleMethod());
+            }
 
-			ret.Members.Add(f = createField(out fr));
-			ret.Members.Add(p = createProperty(fr, f.Type));
-			ret.Members.Add(m = createStatementMethod1(m2, cdp, cme, ctd2, ret));
-			addMain(cdp, ret, m, ns);
-			return ret;
-		}
+            ret.Members.Add(f = createField(out fr));
+            ret.Members.Add(p = createProperty(fr, f.Type));
+            ret.Members.Add(m = createStatementMethod1(m2, cdp, cme, ctd2, ret));
+            addMain(cdp, ret, m, ns);
+            return ret;
+        }
 
-		static void addMain(CodeDomProvider cdp, CodeTypeDeclaration ret, CodeMemberMethod m, CodeNamespace ns) {
-			CodeEntryPointMethod cepm;
+        static void addMain(CodeDomProvider cdp, CodeTypeDeclaration ret, CodeMemberMethod m, CodeNamespace ns) {
+            CodeEntryPointMethod cepm;
+            CodeObjectCreateExpression ce;
+            CodeVariableReferenceExpression vr;
+            string aType;
 
-			if (cdp.Supports(GeneratorSupport.EntryPointMethod)) {
-				string aType;
-				CodeExpression ce;
+            if (cdp.Supports(GeneratorSupport.EntryPointMethod)) {
+                aType = ret.Name;
+                if (string.Compare(cdp.FileExtension, "h", true) == 0)
+                    if (!string.IsNullOrEmpty(ns.Name))
+                        aType = ns.Name + "::" + ret.Name;
 
-				aType = ret.Name;
+                ce = new CodeObjectCreateExpression(aType);
+                ret.Members.Add(cepm = new CodeEntryPointMethod());
+                vr = new CodeVariableReferenceExpression("anObj");
+                cepm.Statements.Add(new CodeVariableDeclarationStatement(ce.CreateType, vr.VariableName, ce));
+                cepm.Statements.Add(new CodeExpressionStatement(new CodeMethodInvokeExpression(vr, m.Name)));
+            }
+        }
 
-				if (string.Compare(cdp.FileExtension, "h", true) == 0)
-					if (!string.IsNullOrEmpty(ns.Name))
-						aType = ns.Name + "::" + ret.Name;
+        static CodeMemberEvent createEvent(CodeTypeDeclaration ret, CodeTypeDelegate ctd2, string v) {
+            CodeMemberEvent cme;
 
-				ce = new CodeObjectCreateExpression(aType);
-				ret.Members.Add(cepm = new CodeEntryPointMethod());
-				cepm.Statements.Add(
-					new CodeExpressionStatement(
-						new CodeMethodInvokeExpression(
-							ce, m.Name)));
-			}
-		}
+            cme = new CodeMemberEvent();
 
-		static CodeMemberEvent createEvent(CodeTypeDeclaration ret, CodeTypeDelegate ctd2, string v) {
-			CodeMemberEvent cme;
+            cme.Name = v;
+            cme.Type = new CodeTypeReference(ctd2.Name);
+            cme.Attributes = MemberAttributes.Public;
+            ret.Members.Add(cme);
+            cme.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "events"));
+            cme.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "events"));
+            return cme;
+        }
 
-			cme = new CodeMemberEvent();
+        static CodeTypeDelegate createDelegateType(CodeTypeDeclaration ret, string delName) {
+            CodeTypeDelegate ctd2;
 
-			cme.Name = v;
-			cme.Type = new CodeTypeReference(ctd2.Name);
-			cme.Attributes = MemberAttributes.Public;
-			ret.Members.Add(cme);
-			cme.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "events"));
-			cme.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "events"));
-			return cme;
-		}
+            ret.Members.Add(ctd2 = new CodeTypeDelegate(delName));
+            ctd2.Parameters.AddRange(
+                new CodeParameterDeclarationExpression[] {
+                    new CodeParameterDeclarationExpression(typeof(object),"sender"),
+                    new CodeParameterDeclarationExpression(typeof(EventArgs),"ea")
+                });
+            return ctd2;
+        }
 
-		static CodeTypeDelegate createDelegateType(CodeTypeDeclaration ret, string delName) {
-			CodeTypeDelegate ctd2;
+        static CodeMemberField createField(out CodeFieldReferenceExpression fr) {
+            fr = new CodeFieldReferenceExpression(null, "_f");
+            CodeMemberField f = new CodeMemberField(new CodeTypeReference(typeof(int)), fr.FieldName);
 
-			ret.Members.Add(ctd2 = new CodeTypeDelegate(delName));
-			ctd2.Parameters.AddRange(
-				new CodeParameterDeclarationExpression[] {
-					new CodeParameterDeclarationExpression(typeof(object),"sender"),
-					new CodeParameterDeclarationExpression(typeof(EventArgs),"ea")
-				});
-			return ctd2;
-		}
+            f.Attributes = 0;
+            f.Attributes = MemberAttributes.Private;
 
-		static CodeMemberField createField(out CodeFieldReferenceExpression fr) {
-			fr = new CodeFieldReferenceExpression(null, "_f");
-			CodeMemberField f = new CodeMemberField(new CodeTypeReference(typeof(int)), fr.FieldName);
+            f.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "fields"));
+            f.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "fields"));
+            return f;
+        }
 
-			f.Attributes = 0;
-			f.Attributes = MemberAttributes.Private;
+        static CodeMemberProperty createProperty(CodeFieldReferenceExpression fr, CodeTypeReference ctr) {
+            CodeMemberProperty ret = new CodeMemberProperty();
 
-			f.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "fields"));
-			f.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "fields"));
-			return f;
-		}
+            ret.Name = "aProperty";
+            ret.Type = ctr;
+            ret.Attributes = 0;
+            ret.GetStatements.Add(new CodeMethodReturnStatement(fr));
+            ret.SetStatements.Add(new CodeAssignStatement(fr, ceValue));
+            ret.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "properties"));
+            ret.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "properties"));
+            return ret;
+        }
 
-		static CodeMemberProperty createProperty(CodeFieldReferenceExpression fr, CodeTypeReference ctr) {
-			CodeMemberProperty ret = new CodeMemberProperty();
+        static CodeMemberMethod createSimpleMethod() {
+            CodeMemberMethod m = new CodeMemberMethod();
 
-			ret.Name = "aProperty";
-			ret.Type = ctr;
-			ret.Attributes = 0;
-			ret.GetStatements.Add(new CodeMethodReturnStatement(fr));
-			ret.SetStatements.Add(new CodeAssignStatement(fr, ceValue));
-			ret.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "properties"));
-			ret.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, "properties"));
-			return ret;
-		}
+            m.Name = "blah";
+            m.Attributes = 0;
+            m.Parameters.AddRange(new CodeParameterDeclarationExpression[] {
+                new CodeParameterDeclarationExpression (typeof(object),"sender"),
+                new CodeParameterDeclarationExpression ("EventArgs","ea")
+                });
 
-		static CodeMemberMethod createSimpleMethod() {
-			CodeMemberMethod m = new CodeMemberMethod();
+            return m;
+        }
 
-			m.Name = "blah";
-			//			m.Attributes = MemberAttributes.Static;
-			m.Attributes = 0;
-			m.Parameters.AddRange(new CodeParameterDeclarationExpression[] {
-				new CodeParameterDeclarationExpression (typeof(object),"sender"),
-				new CodeParameterDeclarationExpression ("EventArgs","ea")
-				});
+        static CodeMemberMethod createStatementMethod1(CodeMemberMethod m2, CodeDomProvider cdp, CodeMemberEvent cme, CodeTypeDelegate ctd2, CodeTypeDeclaration ctd) {
+            CodeMemberMethod m = new CodeMemberMethod();
 
-			return m;
-		}
-
-		static CodeMemberMethod createStatementMethod1(CodeMemberMethod m2, CodeDomProvider cdp, CodeMemberEvent cme, CodeTypeDelegate ctd2, CodeTypeDeclaration ctd) {
-			CodeMemberMethod m = new CodeMemberMethod();
-
-			/*
+            /*
 			  System.CodeDom.CodeArgumentReferenceExpression
 			      System.CodeDom.CodeArrayCreateExpression
 			      System.CodeDom.CodeArrayIndexerExpression
@@ -217,132 +213,132 @@ new CSharpCodeProvider(),
 			      System.CodeDom.CodeTypeReferenceExpression
 
 			*/
-			m.ReturnType = new CodeTypeReference(typeof(bool));
-			m.Name = "test";
-			m.Attributes = 0;
-			m.Attributes = MemberAttributes.FamilyAndAssembly;
-			m.Attributes = MemberAttributes.FamilyOrAssembly;
+            m.ReturnType = new CodeTypeReference(typeof(bool));
+            m.Name = "test";
+            m.Attributes = 0;
+            m.Attributes = MemberAttributes.FamilyAndAssembly;
+            m.Attributes = MemberAttributes.FamilyOrAssembly;
 
-			m.Statements.AddRange(generateStatements1(new CodeVariableReferenceExpression("i")));
-			generateGotoStuff(cdp, m);
-			// add CodeSnippetExpression
-			generateEventCalls(cdp, cme, m, ctd, m2, ctd2);
-			m.Statements.Add(new CodeMethodReturnStatement(new CodePrimitiveExpression(false)));
-			return m;
-		}
+            m.Statements.AddRange(generateStatements1(new CodeVariableReferenceExpression("i")));
+            generateGotoStuff(cdp, m);
+            // add CodeSnippetExpression
+            generateEventCalls(cdp, cme, m, ctd, m2, ctd2);
+            m.Statements.Add(new CodeMethodReturnStatement(new CodePrimitiveExpression(false)));
+            return m;
+        }
 
-		static CodeStatement[] generateStatements1(CodeVariableReferenceExpression vr) {
-			const string EX1_NAME = "fnfe";
-			const string EX2_NAME = "localName";
-			return new CodeStatement[] {
-				new CodeVariableDeclarationStatement (new CodeTypeReference(typeof(int)),vr.VariableName),
-				new CodeTryCatchFinallyStatement(
-					new CodeStatement[] {
-						new CodeCommentStatement("try"),
-						new CodeSnippetStatement(),
-						new CodeCommentStatement("comment"),
-						new CodeAssignStatement(vr,ceZero),
-						new CodeConditionStatement(
-							new CodeBinaryOperatorExpression(vr,CodeBinaryOperatorType.IdentityInequality,ceZero),
-							new CodeThrowExceptionStatement(
-								new CodeObjectCreateExpression(new CodeTypeReference("NotImplementedException")))),
-					},
-				new CodeCatchClause[] {
-					createClause(EX1_NAME,"FileNotFoundException"),
-					createClause(EX2_NAME,"Exception")
-				},
-				new CodeStatement[] {
-					new CodeCommentStatement("finally"),
-				})};
-			/*
+        static CodeStatement[] generateStatements1(CodeVariableReferenceExpression vr) {
+            const string EX1_NAME = "fnfe";
+            const string EX2_NAME = "localName";
+            return new CodeStatement[] {
+                new CodeVariableDeclarationStatement (new CodeTypeReference(typeof(int)),vr.VariableName),
+                new CodeTryCatchFinallyStatement(
+                    new CodeStatement[] {
+                        new CodeCommentStatement("try"),
+                        new CodeSnippetStatement(),
+                        new CodeCommentStatement("comment"),
+                        new CodeAssignStatement(vr,ceZero),
+                        new CodeConditionStatement(
+                            new CodeBinaryOperatorExpression(vr,CodeBinaryOperatorType.IdentityInequality,ceZero),
+                            new CodeThrowExceptionStatement(
+                                new CodeObjectCreateExpression(new CodeTypeReference("NotImplementedException")))),
+                    },
+                new CodeCatchClause[] {
+                    createClause(EX1_NAME,"FileNotFoundException"),
+                    createClause(EX2_NAME,"Exception")
+                },
+                new CodeStatement[] {
+                    new CodeCommentStatement("finally"),
+                })};
+            /*
 			      System.CodeDom.CodeIterationStatement
 			*/
-		}
+        }
 
-		static readonly CodeMethodReferenceExpression cmreDebugWriteLine =
-			new CodeMethodReferenceExpression(
-				new CodeTypeReferenceExpression("Debug"), "WriteLine");
+        static readonly CodeMethodReferenceExpression cmreDebugWriteLine =
+            new CodeMethodReferenceExpression(
+                new CodeTypeReferenceExpression("Debug"), "WriteLine");
 
-		static CodeCatchClause createClause(string varName, string extype) {
-			return new CodeCatchClause(
-				varName,
-				new CodeTypeReference(extype),
-				new CodeExpressionStatement(
-					new CodeMethodInvokeExpression(
-						cmreDebugWriteLine,
-						new CodePropertyReferenceExpression(
-							new CodeVariableReferenceExpression(varName), "Message"))));
-		}
+        static CodeCatchClause createClause(string varName, string extype) {
+            return new CodeCatchClause(
+                varName,
+                new CodeTypeReference(extype),
+                new CodeExpressionStatement(
+                    new CodeMethodInvokeExpression(
+                        cmreDebugWriteLine,
+                        new CodePropertyReferenceExpression(
+                            new CodeVariableReferenceExpression(varName), "Message"))));
+        }
 
-		static void generateEventCalls(CodeDomProvider cdp, CodeMemberEvent cme, CodeMemberMethod m, CodeTypeDeclaration ctd, CodeMemberMethod m2, CodeTypeDelegate ctdDel) {
-			CodeEventReferenceExpression cere;
+        static void generateEventCalls(CodeDomProvider cdp, CodeMemberEvent cme, CodeMemberMethod m, CodeTypeDeclaration ctd, CodeMemberMethod m2, CodeTypeDelegate ctdDel) {
+            CodeEventReferenceExpression cere;
 
-			if (cdp.Supports(GeneratorSupport.DeclareEvents)) {
-				cere = new CodeEventReferenceExpression(null, cme.Name);
-				CodeDelegateCreateExpression cdce = new CodeDelegateCreateExpression(
-					cme.Type,
-					ceThis0,
-					m2.Name);
+            if (cdp.Supports(GeneratorSupport.DeclareEvents)) {
+                cere = new CodeEventReferenceExpression(null, cme.Name);
+                CodeDelegateCreateExpression cdce = new CodeDelegateCreateExpression(
+                    cme.Type,
+                    ceThis0,
+                    m2.Name);
 
-				CodeParameterDeclarationExpressionCollection parms = new CodeParameterDeclarationExpressionCollection();
-				populateParmList(parms, ctdDel);
-				m.Statements.Add(new CodeAttachEventStatement(cere, cdce));
-				m.Statements.Add(new CodeDelegateInvokeExpression(cere, makeArgList(parms)));
-				m.Statements.Add(new CodeRemoveEventStatement(cere, cdce));
-			}
-		}
+                CodeParameterDeclarationExpressionCollection parms = new CodeParameterDeclarationExpressionCollection();
+                populateParmList(parms, ctdDel);
+                m.Statements.Add(new CodeAttachEventStatement(cere, cdce));
+                m.Statements.Add(new CodeDelegateInvokeExpression(cere, makeArgList(parms)));
+                m.Statements.Add(new CodeRemoveEventStatement(cere, cdce));
+            }
+        }
 
-		static CodeExpression[] makeArgList(CodeParameterDeclarationExpressionCollection parms) {
-			Type t;
+        static CodeExpression[] makeArgList(CodeParameterDeclarationExpressionCollection parms) {
+            Type t;
 
-			List<CodeExpression> tmp = new List<CodeExpression>();
-			foreach (CodeParameterDeclarationExpression cpde in parms) {
-				if (string.Compare(cpde.Name, "sender", true) == 0) {
-					if ((t = Type.GetType(cpde.Type.BaseType)) != null) {
-						if (t.Equals(typeof(object)))
-							tmp.Add(ceThis0);
-						else {
-							Trace.WriteLine("non-object type found: " + cpde.Type.BaseType);
-							tmp.Add(ceNull);
-						}
-					} else {
-						Trace.WriteLine("type '" + cpde.Type.BaseType + "' not found!");
-						Trace.WriteLine("here-1-3");
-					}
-				} else {
-					if ((t = Type.GetType(cpde.Type.BaseType)) != null) {
-						tmp.Add(new CodeObjectCreateExpression(t));
-					} else {
-						Trace.WriteLine("here-2-2");
-					}
-				}
-			}
-			return tmp.ToArray();
-		}
+            List<CodeExpression> tmp = new List<CodeExpression>();
+            foreach (CodeParameterDeclarationExpression cpde in parms) {
+                if (string.Compare(cpde.Name, "sender", true) == 0) {
+                    if ((t = Type.GetType(cpde.Type.BaseType)) != null) {
+                        if (t.Equals(typeof(object)))
+                            tmp.Add(ceThis0);
+                        else {
+                            Trace.WriteLine("non-object type found: " + cpde.Type.BaseType);
+                            tmp.Add(ceNull);
+                        }
+                    } else {
+                        Trace.WriteLine("type '" + cpde.Type.BaseType + "' not found!");
+                        Trace.WriteLine("here-1-3");
+                    }
+                } else {
+                    if ((t = Type.GetType(cpde.Type.BaseType)) != null) {
+                        tmp.Add(new CodeObjectCreateExpression(t));
+                    } else {
+                        Trace.WriteLine("here-2-2");
+                    }
+                }
+            }
+            return tmp.ToArray();
+        }
 
-		static void populateParmList(CodeParameterDeclarationExpressionCollection parms, CodeTypeDelegate ctdDel) {
-			foreach (CodeParameterDeclarationExpression cpde in ctdDel.Parameters)
-				parms.Add(cpde);
-		}
+        static void populateParmList(CodeParameterDeclarationExpressionCollection parms, CodeTypeDelegate ctdDel) {
+            foreach (CodeParameterDeclarationExpression cpde in ctdDel.Parameters)
+                parms.Add(cpde);
+        }
 
-		static void generateGotoStuff(CodeDomProvider cdp, CodeMemberMethod m) {
-			if (cdp.Supports(GeneratorSupport.GotoStatements)) {
-				const string LABEL_1 = "here";
-				const string LABEL_2 = "there";
-				m.Statements.Add(new CodeLabeledStatement(LABEL_1));
-				m.Statements.Add(new CodeGotoStatement(LABEL_2));
-				m.Statements.Add(new CodeGotoStatement(LABEL_1));
-				m.Statements.Add(new CodeLabeledStatement(LABEL_2));
-			} else {
-				if (string.Compare(cdp.FileExtension, "js", true) == 0)
-					m.Statements.Add(
-						new CodeThrowExceptionStatement(
-							new CodeObjectCreateExpression("Error",
-							new CodePrimitiveExpression("here"))));
-				else
+        static void generateGotoStuff(CodeDomProvider cdp, CodeMemberMethod m) {
+            if (cdp.Supports(GeneratorSupport.GotoStatements)) {
+                const string LABEL_1 = "here";
+                const string LABEL_2 = "there";
+                m.Statements.Add(new CodeLabeledStatement(LABEL_1));
+                m.Statements.Add(new CodeGotoStatement(LABEL_2));
+                m.Statements.Add(new CodeGotoStatement(LABEL_1));
+                m.Statements.Add(new CodeLabeledStatement(LABEL_2));
+            } else {
+                if (string.Compare(cdp.FileExtension, "js", true) == 0)
+                    m.Statements.Add(
+                        new CodeThrowExceptionStatement(
+                            new CodeObjectCreateExpression("Error",
+                            new CodePrimitiveExpression("here"))));
+                else
 
-					m.Statements.Add(new CodeSnippetStatement("#warning GOTO not allowed!"));
-			}
-		}
-	}
+                    m.Statements.Add(new CodeSnippetStatement("#warning GOTO not allowed!"));
+            }
+        }
+    }
 }
